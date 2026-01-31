@@ -137,6 +137,89 @@ app, rt = fast_app(
     secret_key=os.getenv('AUTH_SECRET', 'dev-secret')
 )
 
+# --- Practice Routes ---
+@rt('/practice')
+def get(session):
+    if not session.get('user_id'): return Redirect('/login')
+    
+    qs = get_all_questions()
+    return Titled("Select a Topic",
+        Div(
+            *[
+                Card(
+                    H3(q.title),
+                    P(f"Topic: {q.topic}"),
+                    A("Start Practice", href=f"/practice/{q.id}/prep", cls="btn"),
+                    style="margin-bottom: 1rem;"
+                ) for q in qs
+            ],
+            cls="container"
+        )
+    )
+
+@rt('/practice/{id}/prep')
+def get(id: int, session):
+    if not session.get('user_id'): return Redirect('/login')
+    
+    q = get_question(id)
+    if not q: return Titled("Error", P("Question not found"))
+
+    # Create session entry if not exists (or handle logic)
+    # For now, just show prep screen
+    return Titled("Preparation Time",
+        Div(
+            H2(f"Topic: {q.topic}"),
+            Div(
+                Img(src=q.image_url, style="max-width: 100%; height: auto;"),
+                cls="card"
+            ),
+            Div(
+                H3("Questions (Preparation)"),
+                P(f"1. {q.question_1}"),
+                P(f"2. {q.question_2}"),
+                P(f"3. {q.question_3}"),
+                cls="card"
+            ),
+            Div(
+                H4("Time Remaining: 03:00", id="timer"),
+                A("Start Exam Now", href=f"/practice/{q.id}/exam", cls="btn"),
+                style="margin-top: 1rem;"
+            ),
+            # Simple script for timer would go here or in external JS
+            cls="container"
+        )
+    )
+
+@rt('/practice/{id}/exam')
+def get(id: int, session):
+    if not session.get('user_id'): return Redirect('/login')
+    
+    q = get_question(id)
+    if not q: return Titled("Error", P("Question not found"))
+    
+    # Initialize practice session in DB
+    user_id = session['user_id']
+    ps = create_practice_session(user_id, q.id)
+    
+    return Titled("Exam In Progress",
+        Div(
+            Div(
+                Img(src=q.image_url, style="max-width: 100%; height: auto;"),
+                style="margin-bottom: 1rem;"
+            ),
+            Div(
+                # We will use HTMX to swap questions here
+                H3("Question 1"),
+                P(q.question_1, cls="question-text"),
+                # Placeholder for Recording UI
+                Button("Start Recording", cls="btn record-btn"),
+                Button("Next Question", cls="btn next-btn"),
+                id="exam-container"
+            ),
+            cls="container"
+        )
+    )
+
 # --- Auth Routes ---
 @rt('/login')
 def get():
