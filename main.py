@@ -134,7 +134,10 @@ answers = db.create(Answer)
 # --- App Setup ---
 app, rt = fast_app(
     hdrs=(
+        Link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'),
+        Link(rel='stylesheet', href='https://fonts.googleapis.com/icon?family=Material+Icons'),
         Link(rel='stylesheet', href='index.css'),
+        Script(src='https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js'),
         Script(src='/public/recorder.js')
     ), 
     pico=False,
