@@ -68,6 +68,21 @@ def update_question(id, **kwargs):
 def delete_question(id):
     questions.delete(id)
 
+# --- Practice Workflow ---
+def create_practice_session(user_id, question_id):
+    session = PracticeSession(user_id=user_id, question_id=question_id, date_taken=datetime.now())
+    return sessions.insert(session)
+
+def get_practice_session(id):
+    try:
+        return sessions[id]
+    except NotFoundError:
+        return None
+
+def submit_answer(session_id, question_number, audio_url):
+    answer = Answer(session_id=session_id, question_number=question_number, audio_url=audio_url)
+    return answers.insert(answer)
+
 # --- Data Models ---
 @dataclass
 class User:
