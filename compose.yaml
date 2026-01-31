@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    container_name: myapp_dev
+    container_name: gcse_chinese_trainer_dev
     ports:
       - "5001:5001"
     volumes:
@@ -17,7 +17,7 @@ services:
 
   db:
     image: postgres:latest
-    container_name: myapp_db
+    container_name: gcse_chinese_trainer_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

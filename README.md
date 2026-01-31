@@ -1,4 +1,4 @@
-# FastHTML Hybrid Template (Windows + Podman)
+# GCSE Chinese Trainer
 
 A production-ready template for building "Hybrid" web applications using **FastHTML** and **FastSQL**, designed to allow dev on a **Windows Host** with a **Podman (Linux)** runtime environment.
 
@@ -69,9 +69,9 @@ Refer to `GEMINI.md` for the complete Agentic Development Workflow.
 *   **Running Tests**:
     Tests **must** run inside the Linux container.
     ```powershell
-    podman exec -it myapp_dev uv run pytest
+    podman exec -it gcse_chinese_trainer_dev uv run pytest
     ```
-    *(Replace `myapp_dev` with your container name if you changed it in `compose.yaml`)*
+    *(Replace `gcse_chinese_trainer_dev` with your container name if you changed it in `compose.yaml`)*
 
 ## 🌍 Deployment (Vercel)
 

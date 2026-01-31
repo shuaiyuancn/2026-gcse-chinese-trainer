@@ -1,7 +1,7 @@
 [project]
-name = "myapp"
+name = "gcse-chinese-trainer"
 version = "0.1.0"
-description = "Add your description here"
+description = "GCSE Chinese Trainer"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
