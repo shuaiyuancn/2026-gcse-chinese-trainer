@@ -1,6 +1,9 @@
 from fasthtml.common import *
 from fastsql import Database
 import os
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
 
 # --- Database Setup ---
 def get_db_url():
@@ -24,6 +27,53 @@ def get_db_url():
 
 db_url = get_db_url()
 db = Database(db_url)
+
+# --- Data Models ---
+@dataclass
+class User:
+    email: str
+    password_hash: str
+    role: str = "student"
+    created_at: datetime = None
+    id: int = None
+
+@dataclass
+class Question:
+    title: str
+    image_url: str
+    question_1: str
+    question_2: str
+    question_3: str
+    question_4: str
+    question_5: str
+    topic: str
+    created_at: datetime = None
+    id: int = None
+
+@dataclass
+class PracticeSession:
+    user_id: int
+    question_id: int
+    date_taken: datetime
+    total_score: int = 0
+    id: int = None
+
+@dataclass
+class Answer:
+    session_id: int
+    question_number: int
+    audio_url: str
+    transcript: str = ""
+    ai_feedback: str = ""
+    score: int = 0
+    id: int = None
+
+# Initialize Tables
+# users, questions, sessions, answers = db.create(User, Question, PracticeSession, Answer)
+users = db.create(User)
+questions = db.create(Question)
+sessions = db.create(PracticeSession)
+answers = db.create(Answer)
 
 # --- App Setup ---
 app, rt = fast_app(hdrs=(Link(rel='stylesheet', href='index.css'),), 
