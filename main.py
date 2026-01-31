@@ -124,7 +124,6 @@ class Answer:
     id: int = None
 
 # Initialize Tables
-# users, questions, sessions, answers = db.create(User, Question, PracticeSession, Answer)
 users = db.create(User)
 questions = db.create(Question)
 sessions = db.create(PracticeSession)
@@ -132,10 +131,18 @@ answers = db.create(Answer)
 
 # --- App Setup ---
 app, rt = fast_app(
-    hdrs=(Link(rel='stylesheet', href='index.css'),), 
+    hdrs=(
+        Link(rel='stylesheet', href='index.css'),
+        Script(src='/public/recorder.js')
+    ), 
     pico=False,
     secret_key=os.getenv('AUTH_SECRET', 'dev-secret')
 )
+
+# Serve static files from public directory
+@rt("/public/{fname:path}")
+def get(fname: str):
+    return FileResponse(f'public/{fname}')
 
 # --- Practice Routes ---
 @rt('/practice')
@@ -208,17 +215,41 @@ def get(id: int, session):
                 style="margin-bottom: 1rem;"
             ),
             Div(
-                # We will use HTMX to swap questions here
+                # Hidden fields for JS to pick up
+                Input(type="hidden", id="session_id", value=ps.id),
+                Input(type="hidden", id="question_number", value=1),
+                
                 H3("Question 1"),
-                P(q.question_1, cls="question-text"),
-                # Placeholder for Recording UI
-                Button("Start Recording", cls="btn record-btn"),
-                Button("Next Question", cls="btn next-btn"),
+                P(q.question_1, cls="question-text", id="question-text"),
+                
+                # Recording UI
+                Div(
+                    Button("Start Recording", id="recordBtn", onclick="startRecording()", cls="btn"),
+                    Button("Stop & Upload", id="stopBtn", onclick="stopRecording()", cls="btn red", disabled=True),
+                    P("Ready to record.", id="status"),
+                    cls="recording-controls"
+                ),
+                
+                # Navigation - Logic to be added for next question
+                Button("Next Question", cls="btn next-btn", style="margin-top: 1rem;"),
                 id="exam-container"
             ),
             cls="container"
         )
     )
+
+@rt('/practice/{session_id}/answer/{question_number}')
+async def post(session_id: int, question_number: int, audio_file: UploadFile):
+    # Ensure uploads directory exists
+    os.makedirs('uploads', exist_ok=True)
+    
+    file_path = f"uploads/{session_id}_{question_number}_{int(datetime.now().timestamp())}.webm"
+    
+    with open(file_path, "wb") as buffer:
+        buffer.write(await audio_file.read())
+        
+    answer = submit_answer(session_id, question_number, file_path)
+    return {"status": "success", "answer_id": answer.id}
 
 # --- Auth Routes ---
 @rt('/login')
