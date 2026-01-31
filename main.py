@@ -4,6 +4,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
+import bcrypt
 
 # --- Database Setup ---
 def get_db_url():
@@ -27,6 +28,25 @@ def get_db_url():
 
 db_url = get_db_url()
 db = Database(db_url)
+
+# --- Auth Helpers ---
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def create_user(email, password, role="student"):
+    pwd_hash = hash_password(password)
+    user = User(email=email, password_hash=pwd_hash, role=role, created_at=datetime.now())
+    return users.insert(user)
+
+def authenticate_user(email, password):
+    for row in users.rows_where("email = ?", [email]):
+        user = User(**row)
+        if verify_password(password, user.password_hash):
+            return user
+    return None
 
 # --- Data Models ---
 @dataclass
@@ -76,15 +96,89 @@ sessions = db.create(PracticeSession)
 answers = db.create(Answer)
 
 # --- App Setup ---
-app, rt = fast_app(hdrs=(Link(rel='stylesheet', href='index.css'),), 
-                    pico=False)
+app, rt = fast_app(
+    hdrs=(Link(rel='stylesheet', href='index.css'),), 
+    pico=False,
+    secret_key=os.getenv('AUTH_SECRET', 'dev-secret')
+)
+
+# --- Auth Routes ---
+@rt('/login')
+def get():
+    return Titled("Login",
+        Form(
+            Input(name="email", type="email", placeholder="Email", required=True),
+            Input(name="password", type="password", placeholder="Password", required=True),
+            Button("Login"),
+            action="/login", method="post"
+        ),
+        P(A("Sign Up", href="/signup"))
+    )
+
+@rt('/login')
+def post(session, email: str, password: str):
+    user = authenticate_user(email, password)
+    if not user:
+        return Titled("Login Failed", 
+            P("Invalid email or password."),
+            A("Try Again", href="/login")
+        )
+    session['user_id'] = user.id
+    return Redirect('/')
+
+@rt('/signup')
+def get():
+    return Titled("Sign Up",
+        Form(
+            Input(name="email", type="email", placeholder="Email", required=True),
+            Input(name="password", type="password", placeholder="Password", required=True),
+            Button("Sign Up"),
+            action="/signup", method="post"
+        ),
+        P(A("Login", href="/login"))
+    )
+
+@rt('/signup')
+def post(session, email: str, password: str):
+    # TODO: Check if user exists to avoid duplicates/error
+    try:
+        user = create_user(email, password)
+        session['user_id'] = user.id
+        return Redirect('/')
+    except Exception as e:
+        return Titled("Error", P(f"Could not sign up: {e}"), A("Back", href="/signup"))
+
+@rt('/logout')
+def get(session):
+    session.clear()
+    return Redirect('/')
 
 @rt('/')
-def get():
+def get(session):
+    user_id = session.get('user_id')
+    user = users[user_id] if user_id else None
+    
+    if user:
+        return Titled(f"Welcome, {user.email}",
+            Div(
+                H2("Dashboard"),
+                P("Start your practice session."),
+                A("Start Practice", href="/practice", cls="btn"),
+                Br(), Br(),
+                A("Logout", href="/logout"),
+                cls="container"
+            )
+        )
+
     return Main(
         Div(
-            H1("Hello World"),
-            P(f"FastHTML Template Running."),
+            H1("GCSE Chinese Trainer"),
+            P(f"Prepare for your Higher Tier Speaking Exam."),
+            Div(
+                A("Login", href="/login", cls="btn"),
+                " ",
+                A("Sign Up", href="/signup", cls="btn secondary"),
+            ),
             P(f"Database URL detected: {db_url.split('@')[-1] if '@' in db_url else 'Local/Unknown'}"),
             cls="container"
         )
