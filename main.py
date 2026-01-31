@@ -1,5 +1,5 @@
 from fasthtml.common import *
-from fastsql import Database
+from fastsql import Database, NotFoundError
 import os
 from dataclasses import dataclass
 from datetime import datetime
@@ -47,6 +47,26 @@ def authenticate_user(email, password):
         if verify_password(password, user.password_hash):
             return user
     return None
+
+# --- Question CRUD ---
+def create_question(**kwargs):
+    kwargs['created_at'] = datetime.now()
+    return questions.insert(Question(**kwargs))
+
+def get_all_questions():
+    return questions()
+
+def get_question(id):
+    try:
+        return questions[id]
+    except NotFoundError:
+        return None
+
+def update_question(id, **kwargs):
+    return questions.update(questions[id], **kwargs)
+
+def delete_question(id):
+    questions.delete(id)
 
 # --- Data Models ---
 @dataclass
