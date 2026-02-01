@@ -8,6 +8,7 @@ import time
 import pathlib
 from datetime import datetime
 from models import users, User, answers, Answer, create_user_record
+from core import db
 
 MODEL = "gemini-2.5-flash"
 
@@ -20,15 +21,35 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_user(email, password, role="student"):
     pwd_hash = hash_password(password)
-    return create_user_record(email, pwd_hash, role)
+    try:
+        return create_user_record(email, pwd_hash, role)
+    except Exception as e:
+        print(f"Error creating user: {e}")
+        # Attempt to reset transaction state
+        try:
+            from sqlalchemy import text
+            db.conn.execute(text("ROLLBACK"))
+        except Exception as rb_e:
+            print(f"Rollback failed: {rb_e}")
+        raise e
 
 def authenticate_user(email, password):
     # Using the models helper directly or accessing table
-    from models import get_user_by_email
-    user = get_user_by_email(email)
-    if user and verify_password(password, user.password_hash):
-        return user
-    return None
+    try:
+        from models import get_user_by_email
+        user = get_user_by_email(email)
+        if user and verify_password(password, user.password_hash):
+            return user
+        return None
+    except Exception as e:
+        print(f"Error authenticating user: {e}")
+        # Attempt to reset transaction state
+        try:
+            from sqlalchemy import text
+            db.conn.execute(text("ROLLBACK"))
+        except Exception as rb_e:
+            print(f"Rollback failed: {rb_e}")
+        raise e
 
 def update_password(user_id: int, new_password: str):
     pwd_hash = hash_password(new_password)
