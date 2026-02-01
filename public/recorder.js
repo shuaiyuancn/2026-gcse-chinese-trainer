@@ -2,6 +2,8 @@ let mediaRecorder;
 let mediaStream;
 let audioChunks = [];
 
+console.log("Recorder JS v2 Loaded");
+
 async function startRecording() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

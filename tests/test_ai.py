@@ -1,11 +1,12 @@
 from unittest.mock import patch, MagicMock
-from services import process_audio_with_ai, create_user
+from services import process_audio_with_ai, run_ai_feedback_task, create_user
 from models import create_question, create_practice_session, submit_answer, answers
 import os
 
-def test_process_audio_with_ai():
+def test_ai_processing_logic():
+    # This tests the actual worker logic (synchronous)
+    
     # Setup DB data
-    # We need a valid answer ID to update
     user = create_user("ai_test@test.com", "pass")
     q = create_question(theme="AI Q", image_url="/img.jpg", question_1="Q1", question_2="Q2", question_3="Q3", question_4="Q4", question_5="Q5", topic="T1")
     session = create_practice_session(user.id, q.id)
@@ -26,8 +27,8 @@ def test_process_audio_with_ai():
             mock_model.generate_content.return_value = mock_response
             mock_genai.GenerativeModel.return_value = mock_model            
             
-            # Run Function
-            process_audio_with_ai(ans.id, "dummy_path.webm", "Question Text")
+            # Run Worker Function directly
+            run_ai_feedback_task(ans.id, "dummy_path.webm", "Question Text")
             
             # Verify Calls
             mock_genai.configure.assert_called_with(api_key="fake_key")
@@ -40,15 +41,15 @@ def test_process_audio_with_ai():
             assert updated_ans.ai_feedback == "Good job"
             assert updated_ans.score == 5
 
-def test_process_audio_no_key():
-    # Ensure it handles missing key gracefully
-    with patch.dict(os.environ, {}, clear=True):
-        # We need to make sure GEMINI_API_KEY is definitely NOT present.
-        # However, patch.dict with clear=True clears ALL env vars which might break DB config.
-        # Safer to just ensure GEMINI_API_KEY is popped.
-        with patch.dict(os.environ):
-            if "GEMINI_API_KEY" in os.environ:
-                del os.environ["GEMINI_API_KEY"]
-                
-            process_audio_with_ai(999, "path", "text")
-            # Should print error and return, no exception raised
+def test_process_audio_dispatch():
+    # This verifies that the main service function offloads to a thread
+    with patch("services.threading.Thread") as mock_thread:
+        process_audio_with_ai(1, "path", "text")
+        
+        # Verify it created a thread targeting the worker
+        mock_thread.assert_called_once()
+        args = mock_thread.call_args[1] if mock_thread.call_args[1] else mock_thread.call_args[0]
+        # Depending on how it's called (kwargs or args)
+        # We expect target=run_ai_feedback_task
+        assert mock_thread.call_args.kwargs['target'] == run_ai_feedback_task
+        mock_thread.return_value.start.assert_called_once()

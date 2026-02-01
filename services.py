@@ -2,6 +2,7 @@ import bcrypt
 import google.generativeai as genai
 import json
 import os
+import threading
 from datetime import datetime
 from models import users, User, answers, Answer, create_user_record
 
@@ -25,7 +26,11 @@ def authenticate_user(email, password):
     return None
 
 # --- AI Services ---
-def process_audio_with_ai(answer_id: int, audio_path: str, question_text: str):
+def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
+    """
+    Synchronous worker function that communicates with Gemini API
+    and updates the database.
+    """
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         print("Skipping AI processing: GEMINI_API_KEY not set.")
@@ -71,3 +76,13 @@ def process_audio_with_ai(answer_id: int, audio_path: str, question_text: str):
         
     except Exception as e:
         print(f"Error in AI processing: {e}")
+
+def process_audio_with_ai(answer_id: int, audio_path: str, question_text: str):
+    """
+    Wrapper that launches the AI processing in a background thread.
+    """
+    thread = threading.Thread(
+        target=run_ai_feedback_task, 
+        args=(answer_id, audio_path, question_text)
+    )
+    thread.start()
