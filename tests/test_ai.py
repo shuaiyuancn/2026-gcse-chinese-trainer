@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY
 from services import process_audio_with_ai, run_ai_feedback_task, create_user
 from models import create_question, create_practice_session, submit_answer, answers
 import os
@@ -18,34 +18,35 @@ def test_ai_processing_logic():
         with patch("services.genai.Client") as MockClient:
             mock_client_instance = MockClient.return_value
             
-            # Mock Upload
-            mock_file = MagicMock()
-            mock_file.name = "files/123"
-            mock_client_instance.files.upload.return_value = mock_file
-            
-            # Mock Get File (Wait loop)
-            mock_file_status = MagicMock()
-            mock_file_status.state = "ACTIVE"
-            mock_client_instance.files.get.return_value = mock_file_status
-            
             # Setup Mock Response
             mock_response = MagicMock()
             mock_response.text = '{"transcript": "Ni Hao", "feedback": "Good job", "score": 5}'
             mock_client_instance.models.generate_content.return_value = mock_response
             
-            # Run Worker Function directly
-            run_ai_feedback_task(ans.id, "dummy_path.webm", "Question Text")
-            
-            # Verify Calls
-            MockClient.assert_called_with(api_key="fake_key")
-            mock_client_instance.files.upload.assert_called_with(file="dummy_path.webm")
-            mock_client_instance.models.generate_content.assert_called()
-            
-            # Verify DB Update
-            updated_ans = answers[ans.id]
-            assert updated_ans.transcript == "Ni Hao"
-            assert updated_ans.ai_feedback == "Good job"
-            assert updated_ans.score == 5
+            # Mock Path read_bytes
+            with patch("services.pathlib.Path") as MockPath:
+                mock_path_instance = MockPath.return_value
+                mock_path_instance.exists.return_value = True
+                mock_path_instance.read_bytes.return_value = b"fake_audio_bytes"
+                
+                # Run Worker Function directly
+                run_ai_feedback_task(ans.id, "dummy_path.webm", "Question Text")
+                
+                # Verify Calls
+                MockClient.assert_called_with(api_key="fake_key")
+                # Ensure generate_content was called
+                mock_client_instance.models.generate_content.assert_called()
+                # Check args - index 0 is contents list
+                call_args = mock_client_instance.models.generate_content.call_args
+                assert call_args is not None
+                # Check model arg
+                assert call_args.kwargs['model'] == "gemini-2.5-flash"
+                
+                # Verify DB Update
+                updated_ans = answers[ans.id]
+                assert updated_ans.transcript == "Ni Hao"
+                assert updated_ans.ai_feedback == "Good job"
+                assert updated_ans.score == 5
 
 def test_process_audio_dispatch():
     # This verifies that the main service function offloads to a thread

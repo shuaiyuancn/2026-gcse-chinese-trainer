@@ -5,6 +5,7 @@ import json
 import os
 import threading
 import time
+import pathlib
 from datetime import datetime
 from models import users, User, answers, Answer, create_user_record
 
@@ -43,27 +44,12 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
     try:
         client = genai.Client(api_key=api_key)
         
-        # Upload the file
-        audio_file = client.files.upload(file=audio_path)
-        
-        # Wait for file to be active
-        start_time = time.time()
-        while time.time() - start_time < 300: # 5 minutes timeout
-            try:
-                file_check = client.files.get(name=audio_file.name)
-                if file_check.state == "ACTIVE":
-                    break
-                elif file_check.state == "FAILED":
-                    raise Exception(f"File processing failed: {file_check.uri}")
-                print(f"Waiting for file processing... Current state: {file_check.state}")
-            except Exception as e:
-                # Ignore 500 errors during check and keep waiting
-                print(f"Error checking file state (ignoring): {e}")
-            
-            time.sleep(5)
-        
-        # Buffer time to ensure availability
-        time.sleep(2)
+        # Read file bytes for inline upload
+        audio_path_obj = pathlib.Path(audio_path)
+        if not audio_path_obj.exists():
+             raise FileNotFoundError(f"Audio file not found: {audio_path}")
+             
+        audio_bytes = audio_path_obj.read_bytes()
         
         prompt = f"""
         You are a GCSE Chinese teacher (Higher Tier).
@@ -77,22 +63,17 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         Example: {{ "transcript": "...", "feedback": "...", "score": 3 }}
         """
         
-        # Generate with retry
-        max_retries = 3
-        for i in range(max_retries):
-            try:
-                result = client.models.generate_content(
-                    model=MODEL,
-                    contents=[audio_file, prompt],
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json"
-                    )
-                )
-                break
-            except Exception as e:
-                print(f"Generation attempt {i+1} failed: {e}")
-                if i == max_retries - 1: raise e
-                time.sleep(2)
+        # Generate using inline data (no waiting required)
+        result = client.models.generate_content(
+            model=MODEL,
+            contents=[
+                types.Part.from_bytes(data=audio_bytes, mime_type="audio/webm"), 
+                prompt
+            ],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
+        )
 
         response_text = result.text.strip()
         
