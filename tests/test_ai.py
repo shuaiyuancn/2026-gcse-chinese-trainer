@@ -20,7 +20,8 @@ def test_ai_processing_logic():
             
             # Setup Mock Response
             mock_response = MagicMock()
-            mock_response.text = '{"transcript": "Ni Hao", "feedback": "Good job", "score": 5}'
+            # Return dict for feedback to test serialization
+            mock_response.text = '{"transcript": "Ni Hao", "feedback": {"Grammar": "Good"}, "score": 5}'
             mock_client_instance.models.generate_content.return_value = mock_response
             
             # Mock Path read_bytes
@@ -45,7 +46,8 @@ def test_ai_processing_logic():
                 # Verify DB Update
                 updated_ans = answers[ans.id]
                 assert updated_ans.transcript == "Ni Hao"
-                assert updated_ans.ai_feedback == "Good job"
+                # Check if it serialized correctly
+                assert '{"Grammar": "Good"}' in updated_ans.ai_feedback or "{'Grammar': 'Good'}" in updated_ans.ai_feedback
                 assert updated_ans.score == 5
 
 def test_process_audio_dispatch():

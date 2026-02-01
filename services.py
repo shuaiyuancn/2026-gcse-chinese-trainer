@@ -88,7 +88,13 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         # Update Answer Record
         ans = answers[answer_id]
         ans.transcript = data.get("transcript", "")
-        ans.ai_feedback = data.get("feedback", "")
+        
+        feedback_data = data.get("feedback", "")
+        if isinstance(feedback_data, (dict, list)):
+            ans.ai_feedback = json.dumps(feedback_data, ensure_ascii=False)
+        else:
+            ans.ai_feedback = str(feedback_data)
+            
         ans.score = data.get("score", 0)
         answers.update(ans)
         
