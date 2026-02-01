@@ -1,9 +1,11 @@
 let mediaRecorder;
+let mediaStream;
 let audioChunks = [];
 
 async function startRecording() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStream = stream;
         mediaRecorder = new MediaRecorder(stream);
         
         mediaRecorder.ondataavailable = event => {
@@ -25,6 +27,10 @@ async function startRecording() {
 function stopRecording() {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
         mediaRecorder.stop();
+        // Stop all tracks to release microphone
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+        }
         document.getElementById('recordBtn').disabled = false;
         document.getElementById('stopBtn').disabled = true;
         document.getElementById('status').innerText = "Processing...";
@@ -49,7 +55,9 @@ async function uploadAudio() {
         if (response.ok) {
             const result = await response.json();
             document.getElementById('status').innerText = "Saved!";
-            document.getElementById('nextBtn').disabled = false;
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('disabled');
             console.log(result);
         } else {
             document.getElementById('status').innerText = "Upload failed.";
