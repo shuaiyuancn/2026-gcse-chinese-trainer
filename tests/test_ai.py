@@ -20,7 +20,13 @@ def test_ai_processing_logic():
             
             # Mock Upload
             mock_file = MagicMock()
+            mock_file.name = "files/123"
             mock_client_instance.files.upload.return_value = mock_file
+            
+            # Mock Get File (Wait loop)
+            mock_file_status = MagicMock()
+            mock_file_status.state = "ACTIVE"
+            mock_client_instance.files.get.return_value = mock_file_status
             
             # Setup Mock Response
             mock_response = MagicMock()

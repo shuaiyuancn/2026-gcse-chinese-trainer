@@ -4,6 +4,7 @@ from google.genai import types
 import json
 import os
 import threading
+import time
 from datetime import datetime
 from models import users, User, answers, Answer, create_user_record
 
@@ -44,6 +45,16 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         
         # Upload the file
         audio_file = client.files.upload(file=audio_path)
+        
+        # Wait for file to be active
+        while True:
+            file_check = client.files.get(name=audio_file.name)
+            if file_check.state == "ACTIVE":
+                break
+            elif file_check.state == "FAILED":
+                raise Exception(f"File processing failed: {file_check.uri}")
+            print(f"Waiting for file processing... Current state: {file_check.state}")
+            time.sleep(1)
         
         prompt = f"""
         You are a GCSE Chinese teacher (Higher Tier).
