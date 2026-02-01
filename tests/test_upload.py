@@ -7,7 +7,7 @@ client = TestClient(app)
 def test_audio_upload_route():
     # Setup
     user = create_user("upload_test@test.com", "pass")
-    q = create_question(title="Upload Q", image_url="/img.jpg", question_1="Q1", question_2="Q2", question_3="Q3", question_4="Q4", question_5="Q5", topic="T1")
+    q = create_question(theme="Upload Q", image_url="/img.jpg", question_1="Q1", question_2="Q2", question_3="Q3", question_4="Q4", question_5="Q5", topic="T1")
     session = create_practice_session(user.id, q.id)
 
     # Create dummy audio file

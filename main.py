@@ -96,7 +96,7 @@ class User:
 
 @dataclass
 class Question:
-    title: str
+    theme: str
     image_url: str
     question_1: str
     question_2: str
@@ -159,7 +159,7 @@ def get(session):
         Div(
             *[
                 Card(
-                    H3(q.title),
+                    H3(q.theme),
                     P(f"Topic: {q.topic}"),
                     A("Start Practice", href=f"/practice/{q.id}/prep", cls="btn"),
                     style="margin-bottom: 1rem;"
@@ -327,7 +327,7 @@ def get(session):
     for row in user_sessions:
         s = PracticeSession(**row)
         q = get_question(s.question_id)
-        title = q.title if q else "Unknown Topic"
+        title = q.theme if q else "Unknown Topic"
         history_items.append(
             Card(
                 H4(f"{title}"),
@@ -358,7 +358,7 @@ def get(id: int, session):
     
     return Titled("Session Review",
         Div(
-            H2(f"Topic: {q.title if q else 'Unknown'}"),
+            H2(f"Topic: {q.theme if q else 'Unknown'}"),
             Div(
                 Img(src=q.image_url, style="max-width: 100%; height: auto;") if q else "",
                 style="margin-bottom: 2rem;"

@@ -13,7 +13,7 @@ def test_user_model_structure():
 
 def test_question_model_structure():
     q = Question(
-        title="Test Card",
+        theme="Test Card",
         image_url="/img/test.jpg",
         question_1="Q1",
         question_2="Q2",
@@ -22,7 +22,7 @@ def test_question_model_structure():
         question_5="Q5",
         topic="Theme 1"
     )
-    assert q.title == "Test Card"
+    assert q.theme == "Test Card"
     assert q.question_1 == "Q1"
 
 def test_practice_session_model():

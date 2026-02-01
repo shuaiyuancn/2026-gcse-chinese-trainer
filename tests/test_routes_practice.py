@@ -6,7 +6,7 @@ client = TestClient(app)
 def test_practice_routes():
     # Setup
     user = create_user("route_test@test.com", "pass")
-    q = create_question(title="Route Test Q", image_url="/img.jpg", question_1="Q1", question_2="Q2", question_3="Q3", question_4="Q4", question_5="Q5", topic="T1")
+    q = create_question(theme="Route Test Q", image_url="/img.jpg", question_1="Q1", question_2="Q2", question_3="Q3", question_4="Q4", question_5="Q5", topic="T1")
     
     # Login to get session cookie (mocking session is harder with TestClient, 
     # so we might need to rely on the fact that FastHTML sessions are cookie-based)
