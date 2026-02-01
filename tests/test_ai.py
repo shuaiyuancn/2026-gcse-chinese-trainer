@@ -14,26 +14,26 @@ def test_ai_processing_logic():
     
     # Mock Environment Variable
     with patch.dict(os.environ, {"GEMINI_API_KEY": "fake_key"}):
-        # Mock genai
-        with patch("services.genai") as mock_genai:
+        # Mock genai Client
+        with patch("services.genai.Client") as MockClient:
+            mock_client_instance = MockClient.return_value
+            
             # Mock Upload
             mock_file = MagicMock()
-            mock_genai.upload_file.return_value = mock_file
+            mock_client_instance.files.upload.return_value = mock_file
             
             # Setup Mock Response
-            mock_model = MagicMock()
             mock_response = MagicMock()
             mock_response.text = '{"transcript": "Ni Hao", "feedback": "Good job", "score": 5}'
-            mock_model.generate_content.return_value = mock_response
-            mock_genai.GenerativeModel.return_value = mock_model            
+            mock_client_instance.models.generate_content.return_value = mock_response
             
             # Run Worker Function directly
             run_ai_feedback_task(ans.id, "dummy_path.webm", "Question Text")
             
             # Verify Calls
-            mock_genai.configure.assert_called_with(api_key="fake_key")
-            mock_genai.upload_file.assert_called_with("dummy_path.webm")
-            mock_model.generate_content.assert_called()
+            MockClient.assert_called_with(api_key="fake_key")
+            mock_client_instance.files.upload.assert_called_with(path="dummy_path.webm")
+            mock_client_instance.models.generate_content.assert_called()
             
             # Verify DB Update
             updated_ans = answers[ans.id]

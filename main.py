@@ -5,6 +5,8 @@ from routes.auth import setup_auth_routes
 from routes.practice import setup_practice_routes
 from routes.review import setup_review_routes
 
+import os
+
 # Setup Routes
 setup_auth_routes(rt)
 setup_practice_routes(rt)
@@ -43,4 +45,5 @@ def get(session):
     )
 
 if __name__ == "__main__":
+    print(f"GEMINI API Key: {os.getenv('GEMINI_API_KEY')}")
     serve()

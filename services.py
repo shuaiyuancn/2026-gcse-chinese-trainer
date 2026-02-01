@@ -1,10 +1,13 @@
 import bcrypt
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import json
 import os
 import threading
 from datetime import datetime
 from models import users, User, answers, Answer, create_user_record
+
+MODEL = "gemini-2.5-flash"
 
 # --- Auth Services ---
 def hash_password(password: str) -> str:
@@ -37,12 +40,10 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         return
 
     try:
-        genai.configure(api_key=api_key)
+        client = genai.Client(api_key=api_key)
         
         # Upload the file
-        audio_file = genai.upload_file(audio_path)
-        
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        audio_file = client.files.upload(path=audio_path)
         
         prompt = f"""
         You are a GCSE Chinese teacher (Higher Tier).
@@ -56,12 +57,17 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         Example: {{ "transcript": "...", "feedback": "...", "score": 3 }}
         """
         
-        result = model.generate_content([audio_file, prompt])
+        result = client.models.generate_content(
+            model=MODEL,
+            contents=[audio_file, prompt]
+        )
         response_text = result.text.strip()
         
         # Clean up JSON markdown if present
         if response_text.startswith("```json"):
             response_text = response_text[7:-3]
+        elif response_text.startswith("```"):
+            response_text = response_text[3:-3]
         
         data = json.loads(response_text)
         
