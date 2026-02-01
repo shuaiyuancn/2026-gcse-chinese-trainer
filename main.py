@@ -45,5 +45,4 @@ def get(session):
     )
 
 if __name__ == "__main__":
-    print(f"GEMINI API Key: {os.getenv('GEMINI_API_KEY')}")
     serve()
