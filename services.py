@@ -49,7 +49,7 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         The student is answering the question: "{question_text}"
         
         1. Transcribe the audio exactly into Chinese characters.
-        2. Provide feedback based on GCSE Higher Tier criteria (Grammar, Vocabulary, Pronunciation/Tones).
+        2. Provide feedback based on GCSE Higher Tier criteria (Grammar, Vocabulary, Pronunciation/Tones). Note the feedback should be for the original audio, not the transcription.
         3. Give a score out of 5 (integer).
         
         Return ONLY a JSON object with keys: "transcript", "feedback", "score".

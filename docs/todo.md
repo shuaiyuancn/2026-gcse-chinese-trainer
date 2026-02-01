@@ -37,6 +37,7 @@
     - [x] Gemini API Integration (Audio -> Text -> Feedback)
     - [x] Saving results to Database
     - [x] Async/Background Processing for AI Feedback
+    - [ ] Migrate to `google-genai` SDK (deprecation fix)
 
 ## Phase 6: Review & Refinement
 - [x] **Review System**

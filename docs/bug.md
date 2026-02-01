@@ -6,3 +6,4 @@
 
 ## Fixed Bugs
 - [x] **Next Question Unresponsive:** After recording and saving an answer for the first question, clicking "Next Question" does not respond or advance to the next question.
+- [x] **Missing AI Feedback/Score in Review:** Caused by missing `GEMINI_API_KEY` environment variable and incorrect model name (`gemini-2.5-flash` -> `gemini-1.5-flash`). Added `.env.example` and corrected code.

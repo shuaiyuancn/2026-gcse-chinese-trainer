@@ -60,7 +60,19 @@ Open `http://localhost:5001`. You should see the "Hello World" message.
 **Ready to Build?**
 Refer to `GEMINI.md` for the complete Agentic Development Workflow.
 
-## 💻 Development Workflow
+## Configuration
+
+1.  Copy `.env.example` to `.env`:
+    ```bash
+    cp .env.example .env
+    ```
+2.  Open `.env` and set your `GEMINI_API_KEY`. Get one from [Google AI Studio](https://aistudio.google.com/).
+3.  Restart the application if running:
+    ```bash
+    podman-compose restart web
+    ```
+
+## Development
 
 *   **Editing Code**: Edit files on your Windows host (`main.py`, etc.). Changes are reflected in the container (note: auto-reload depends on `uvicorn` configuration, currently set to manual restart or `uv sync` triggers).
 *   **Adding Libraries**:
