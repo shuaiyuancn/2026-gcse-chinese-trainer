@@ -49,4 +49,5 @@ def get(session):
     )
 
 if __name__ == "__main__":
-    serve()
+    port = int(os.getenv("PORT", 5001))
+    serve(host="0.0.0.0", port=port)
