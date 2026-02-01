@@ -47,8 +47,8 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         audio_file = client.files.upload(file=audio_path)
         
         # Wait for file to be active
-        attempt = 0
-        while True:
+        start_time = time.time()
+        while time.time() - start_time < 300: # 5 minutes timeout
             try:
                 file_check = client.files.get(name=audio_file.name)
                 if file_check.state == "ACTIVE":
@@ -57,10 +57,10 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
                     raise Exception(f"File processing failed: {file_check.uri}")
                 print(f"Waiting for file processing... Current state: {file_check.state}")
             except Exception as e:
-                print(f"Error checking file state (attempt {attempt}): {e}")
-                if attempt > 5: raise e
-                attempt += 1
-            time.sleep(2)
+                # Ignore 500 errors during check and keep waiting
+                print(f"Error checking file state (ignoring): {e}")
+            
+            time.sleep(5)
         
         # Buffer time to ensure availability
         time.sleep(2)
