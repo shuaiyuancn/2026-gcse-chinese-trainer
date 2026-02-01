@@ -84,8 +84,11 @@ function nextQuestion() {
         
         // Update UI
         document.getElementById('question-title').innerText = `Question ${currentNum}`;
-        document.getElementById('question-text').innerText = questionsData[currentNum.toString()];
+        // Do NOT show text: document.getElementById('question-text').innerText = questionsData[currentNum.toString()];
         
+        // Play Audio
+        playQuestionAudio(currentNum);
+
         // Reset Recording UI
         document.getElementById('status').innerText = "Ready to record.";
         document.getElementById('recordBtn').disabled = false;
@@ -101,3 +104,41 @@ function nextQuestion() {
         window.location.href = `/review/${sessionId}`;
     }
 }
+
+function playQuestionAudio(questionNum = null) {
+    if (!questionNum) {
+        questionNum = document.getElementById('question_number').value;
+    }
+    
+    const text = questionsData[questionNum.toString()];
+    if (text) {
+        // Cancel any current speech
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN'; // Set language to Chinese
+        utterance.rate = 0.8; // Slightly slower for clarity
+        
+        utterance.onstart = () => {
+            const btn = document.getElementById('playAudioBtn');
+            if(btn) btn.classList.add('pulse');
+        };
+        
+        utterance.onend = () => {
+            const btn = document.getElementById('playAudioBtn');
+            if(btn) btn.classList.remove('pulse');
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+// Auto-play on load (if on exam page)
+window.addEventListener('load', () => {
+    if (document.getElementById('question-title') && typeof questionsData !== 'undefined') {
+        // Small delay to ensure interaction or just try
+        setTimeout(() => {
+            playQuestionAudio(1);
+        }, 500);
+    }
+});

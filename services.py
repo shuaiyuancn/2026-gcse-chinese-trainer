@@ -30,6 +30,12 @@ def authenticate_user(email, password):
         return user
     return None
 
+def update_password(user_id: int, new_password: str):
+    pwd_hash = hash_password(new_password)
+    user = users[user_id]
+    user.password_hash = pwd_hash
+    users.update(user)
+
 # --- AI Services ---
 def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
     """
@@ -53,7 +59,7 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         
         prompt = f"""
         You are a GCSE Chinese teacher (Higher Tier).
-        The student is answering the question: "{question_text}"
+        The student is answering the question in Chinese: "{question_text}"
         
         1. Transcribe the audio exactly into Chinese characters.
         2. Provide feedback based on GCSE Higher Tier criteria (Grammar, Vocabulary, Pronunciation/Tones). Note the feedback should be for the original audio, not the transcription.

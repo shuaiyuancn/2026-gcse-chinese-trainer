@@ -25,7 +25,11 @@ def get(session):
                 P("Start your practice session."),
                 A("Start Practice", href="/practice", cls="btn"),
                 Br(), Br(),
-                A("Logout", href="/logout"),
+                A("Review History", href="/review", cls="btn teal"),
+                Br(), Br(),
+                A("Profile", href="/profile", cls="btn blue-grey"),
+                Br(), Br(),
+                A("Logout", href="/logout", cls="btn red"),
                 cls="container"
             )
         )
@@ -36,7 +40,7 @@ def get(session):
             P(f"Prepare for your Higher Tier Speaking Exam."),
             Div(
                 A("Login", href="/login", cls="btn"),
-                " ",
+                Br(), Br(),
                 A("Sign Up", href="/signup", cls="btn secondary"),
             ),
             P(f"Database URL detected: {db_url.split('@')[-1] if '@' in db_url else 'Local/Unknown'}"),

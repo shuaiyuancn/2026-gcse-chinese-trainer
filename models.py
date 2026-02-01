@@ -23,7 +23,10 @@ class Question:
     question_3: str
     question_4: str
     question_5: str
-    topic: str
+    question_1_en: str = ""
+    question_2_en: str = ""
+    question_3_en: str = ""
+    topic: str = ""
     created_at: datetime = None
     id: int = None
 

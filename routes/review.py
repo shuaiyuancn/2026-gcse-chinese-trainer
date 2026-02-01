@@ -27,6 +27,8 @@ def setup_review_routes(rt):
         return Titled("My Practice History",
             Div(
                 *history_items if history_items else [P("No practice sessions yet.")],
+                Br(),
+                A("Back to Dashboard", href="/", cls="btn blue-grey"),
                 cls="container"
             )
         )
@@ -64,7 +66,11 @@ def setup_review_routes(rt):
                     ],
                     cls="answers-list"
                 ),
+                A("Start a New Practice", href="/practice", cls="btn"),
+                Br(), Br(),
                 A("Back to History", href="/review", cls="btn secondary"),
+                Br(), Br(),
+                A("Back to Dashboard", href="/", cls="btn blue-grey"),
                 cls="container"
             )
         )

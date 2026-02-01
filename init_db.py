@@ -1,5 +1,5 @@
 from services import create_user
-from models import create_question, users, questions, sessions, answers
+from models import create_question, users, questions, sessions, answers, User, Question, PracticeSession, Answer
 from core import db
 from datetime import datetime
 from sqlalchemy import text
@@ -8,13 +8,19 @@ def init_db():
     print("Clearing database...")
     # Order matters due to Foreign Keys
     try:
-        with db.conn.begin():
-            db.conn.execute(text("DELETE FROM answer"))
-            db.conn.execute(text("DELETE FROM practice_session"))
-            db.conn.execute(text("DELETE FROM question"))
-            db.conn.execute(text("DELETE FROM \"user\""))
+        # Drop tables to handle schema changes
+        db.t.answer.drop()
+        db.t.practice_session.drop()
+        db.t.question.drop()
+        db.t.user.drop()
     except Exception as e:
-        print(f"Error clearing tables: {e}")
+        print(f"Error dropping tables: {e}")
+
+    print("Recreating tables...")
+    db.create(User)
+    db.create(Question)
+    db.create(PracticeSession)
+    db.create(Answer)
 
     print("Initializing database...")
 
@@ -37,7 +43,10 @@ def init_db():
         question_2="你最喜欢什么运动？为什么？",
         question_3="你最近看了什么电影？",
         question_4="看电视有什么好处，有什么坏处？",
-        question_5="你今天晚上想做什么",
+        question_5="你今天晚上想做什么？",
+        question_1_en="What is there in the photo?",
+        question_2_en="What sport do you like best and why?",
+        question_3_en="Do you like watching films? What type of films have you seen recently?",
         topic=topic
     )
 

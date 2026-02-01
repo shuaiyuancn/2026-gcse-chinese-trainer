@@ -41,9 +41,9 @@ def setup_practice_routes(rt):
                 ),
                 Div(
                     H3("Questions (Preparation)"),
-                    P(f"1. {q.question_1}"),
-                    P(f"2. {q.question_2}"),
-                    P(f"3. {q.question_3}"),
+                    P(B("1. "), q.question_1, Br(), I(q.question_1_en, style="color: #666; font-size: 0.9em;")),
+                    P(B("2. "), q.question_2, Br(), I(q.question_2_en, style="color: #666; font-size: 0.9em;")),
+                    P(B("3. "), q.question_3, Br(), I(q.question_3_en, style="color: #666; font-size: 0.9em;")),
                     cls="card"
                 ),
                 Div(
@@ -86,11 +86,21 @@ def setup_practice_routes(rt):
                     Input(type="hidden", id="question_number", value=1),
                     
                     H3("Question 1", id="question-title"),
-                    P(q.question_1, cls="question-text", id="question-text"),
+                    Div(
+                        Button(
+                            I("volume_up", cls="material-icons left"),
+                            "Play Audio", 
+                            id="playAudioBtn",
+                            onclick="playQuestionAudio()", 
+                            cls="btn waves-effect waves-light teal lighten-1", 
+                            style="margin-bottom: 1rem;"
+                        ),
+                    ),
                     
                     # Recording UI
                     Div(
                         Button("Start Recording", id="recordBtn", onclick="startRecording()", cls="btn"),
+                        Br(), Br(),
                         Button("Stop & Upload", id="stopBtn", onclick="stopRecording()", cls="btn red", disabled=True),
                         P("Ready to record.", id="status"),
                         cls="recording-controls"
