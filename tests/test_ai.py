@@ -32,7 +32,7 @@ def test_ai_processing_logic():
             
             # Verify Calls
             MockClient.assert_called_with(api_key="fake_key")
-            mock_client_instance.files.upload.assert_called_with(path="dummy_path.webm")
+            mock_client_instance.files.upload.assert_called_with(file="dummy_path.webm")
             mock_client_instance.models.generate_content.assert_called()
             
             # Verify DB Update

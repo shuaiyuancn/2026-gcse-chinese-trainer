@@ -43,7 +43,7 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         client = genai.Client(api_key=api_key)
         
         # Upload the file
-        audio_file = client.files.upload(path=audio_path)
+        audio_file = client.files.upload(file=audio_path)
         
         prompt = f"""
         You are a GCSE Chinese teacher (Higher Tier).
