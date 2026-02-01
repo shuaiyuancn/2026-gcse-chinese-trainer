@@ -1,4 +1,4 @@
-from main import User, Question, PracticeSession, Answer
+from models import User, Question, PracticeSession, Answer
 from datetime import datetime
 
 def test_user_model_structure():

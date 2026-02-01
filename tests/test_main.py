@@ -1,5 +1,6 @@
 from starlette.testclient import TestClient
 from main import app
+from services import create_user
 
 def test_get_home():
     client = TestClient(app)

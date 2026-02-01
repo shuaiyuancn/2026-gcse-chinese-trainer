@@ -1,4 +1,4 @@
-from main import Question, create_question, get_all_questions, get_question, update_question, delete_question
+from models import create_question, get_all_questions, get_question, update_question, delete_question, questions, Question
 
 def test_question_crud():
     # 1. Create

@@ -1,4 +1,5 @@
-from main import create_question, create_practice_session, get_practice_session, submit_answer, create_user
+from services import create_user
+from models import create_question, create_practice_session, get_practice_session, submit_answer, sessions, answers, PracticeSession, Answer
 from datetime import datetime
 
 def test_practice_workflow():

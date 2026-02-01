@@ -1,5 +1,7 @@
 from starlette.testclient import TestClient
-from main import app, create_question, create_user
+from main import app
+from services import create_user
+from models import create_question, sessions
 
 client = TestClient(app)
 

@@ -1,4 +1,5 @@
-from main import hash_password, verify_password, create_user, authenticate_user, User
+from services import create_user, authenticate_user, hash_password, verify_password
+from models import users
 
 def test_password_hashing():
     pwd = "secret"

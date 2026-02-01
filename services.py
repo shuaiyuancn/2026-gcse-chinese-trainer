@@ -1,0 +1,73 @@
+import bcrypt
+import google.generativeai as genai
+import json
+import os
+from datetime import datetime
+from models import users, User, answers, Answer, create_user_record
+
+# --- Auth Services ---
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def create_user(email, password, role="student"):
+    pwd_hash = hash_password(password)
+    return create_user_record(email, pwd_hash, role)
+
+def authenticate_user(email, password):
+    # Using the models helper directly or accessing table
+    from models import get_user_by_email
+    user = get_user_by_email(email)
+    if user and verify_password(password, user.password_hash):
+        return user
+    return None
+
+# --- AI Services ---
+def process_audio_with_ai(answer_id: int, audio_path: str, question_text: str):
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("Skipping AI processing: GEMINI_API_KEY not set.")
+        return
+
+    try:
+        genai.configure(api_key=api_key)
+        
+        # Upload the file
+        audio_file = genai.upload_file(audio_path)
+        
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        
+        prompt = f"""
+        You are a GCSE Chinese teacher (Higher Tier).
+        The student is answering the question: "{question_text}"
+        
+        1. Transcribe the audio exactly into Chinese characters.
+        2. Provide feedback based on GCSE Higher Tier criteria (Grammar, Vocabulary, Pronunciation/Tones).
+        3. Give a score out of 5 (integer).
+        
+        Return ONLY a JSON object with keys: "transcript", "feedback", "score".
+        Example: {{ "transcript": "...", "feedback": "...", "score": 3 }}
+        """
+        
+        result = model.generate_content([audio_file, prompt])
+        response_text = result.text.strip()
+        
+        # Clean up JSON markdown if present
+        if response_text.startswith("```json"):
+            response_text = response_text[7:-3]
+        
+        data = json.loads(response_text)
+        
+        # Update Answer Record
+        ans = answers[answer_id]
+        ans.transcript = data.get("transcript", "")
+        ans.ai_feedback = data.get("feedback", "")
+        ans.score = data.get("score", 0)
+        answers.update(ans)
+        
+        print(f"AI Processing complete for Answer {answer_id}")
+        
+    except Exception as e:
+        print(f"Error in AI processing: {e}")

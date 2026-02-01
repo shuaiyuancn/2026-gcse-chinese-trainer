@@ -1,5 +1,6 @@
 from unittest.mock import patch, MagicMock
-from main import process_audio_with_ai, answers, Answer, create_question, create_practice_session, submit_answer, create_user
+from services import process_audio_with_ai, create_user
+from models import create_question, create_practice_session, submit_answer, answers
 import os
 
 def test_process_audio_with_ai():
@@ -13,13 +14,17 @@ def test_process_audio_with_ai():
     # Mock Environment Variable
     with patch.dict(os.environ, {"GEMINI_API_KEY": "fake_key"}):
         # Mock genai
-        with patch("main.genai") as mock_genai:
+        with patch("services.genai") as mock_genai:
+            # Mock Upload
+            mock_file = MagicMock()
+            mock_genai.upload_file.return_value = mock_file
+            
             # Setup Mock Response
             mock_model = MagicMock()
             mock_response = MagicMock()
             mock_response.text = '{"transcript": "Ni Hao", "feedback": "Good job", "score": 5}'
             mock_model.generate_content.return_value = mock_response
-            mock_genai.GenerativeModel.return_value = mock_model
+            mock_genai.GenerativeModel.return_value = mock_model            
             
             # Run Function
             process_audio_with_ai(ans.id, "dummy_path.webm", "Question Text")

@@ -1,5 +1,7 @@
 from starlette.testclient import TestClient
-from main import app, create_question, create_user, create_practice_session
+from main import app
+from services import create_user
+from models import create_question, create_practice_session, submit_answer, answers
 import io
 
 client = TestClient(app)
