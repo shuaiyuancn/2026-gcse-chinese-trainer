@@ -213,6 +213,14 @@ def get(id: int, session):
     user_id = session['user_id']
     ps = create_practice_session(user_id, q.id)
     
+    questions_json = json.dumps({
+        "1": q.question_1,
+        "2": q.question_2,
+        "3": q.question_3,
+        "4": q.question_4,
+        "5": q.question_5
+    })
+
     return Titled("Exam In Progress",
         Div(
             Div(
@@ -224,7 +232,7 @@ def get(id: int, session):
                 Input(type="hidden", id="session_id", value=ps.id),
                 Input(type="hidden", id="question_number", value=1),
                 
-                H3("Question 1"),
+                H3("Question 1", id="question-title"),
                 P(q.question_1, cls="question-text", id="question-text"),
                 
                 # Recording UI
@@ -235,10 +243,11 @@ def get(id: int, session):
                     cls="recording-controls"
                 ),
                 
-                # Navigation - Logic to be added for next question
-                Button("Next Question", cls="btn next-btn", style="margin-top: 1rem;"),
+                # Navigation
+                Button("Next Question", id="nextBtn", onclick="nextQuestion()", cls="btn next-btn", style="margin-top: 1rem;", disabled=True),
                 id="exam-container"
             ),
+            Script(f"const questionsData = {questions_json};"),
             cls="container"
         )
     )

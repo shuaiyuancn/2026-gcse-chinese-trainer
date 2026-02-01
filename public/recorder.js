@@ -49,7 +49,7 @@ async function uploadAudio() {
         if (response.ok) {
             const result = await response.json();
             document.getElementById('status').innerText = "Saved!";
-            // Logic to move to next question or show feedback
+            document.getElementById('nextBtn').disabled = false;
             console.log(result);
         } else {
             document.getElementById('status').innerText = "Upload failed.";
@@ -61,4 +61,33 @@ async function uploadAudio() {
     
     // Reset chunks for next recording
     audioChunks = [];
+}
+
+function nextQuestion() {
+    let currentNum = parseInt(document.getElementById('question_number').value);
+    
+    if (currentNum < 5) {
+        currentNum++;
+        
+        // Update State
+        document.getElementById('question_number').value = currentNum;
+        
+        // Update UI
+        document.getElementById('question-title').innerText = `Question ${currentNum}`;
+        document.getElementById('question-text').innerText = questionsData[currentNum.toString()];
+        
+        // Reset Recording UI
+        document.getElementById('status').innerText = "Ready to record.";
+        document.getElementById('recordBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('nextBtn').disabled = true;
+        
+        if (currentNum === 5) {
+            document.getElementById('nextBtn').innerText = "Finish Exam";
+        }
+    } else {
+        // Finish Exam
+        const sessionId = document.getElementById('session_id').value;
+        window.location.href = `/review/${sessionId}`;
+    }
 }
