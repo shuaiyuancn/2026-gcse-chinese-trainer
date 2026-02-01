@@ -47,14 +47,20 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         audio_file = client.files.upload(file=audio_path)
         
         # Wait for file to be active
+        attempt = 0
         while True:
-            file_check = client.files.get(name=audio_file.name)
-            if file_check.state == "ACTIVE":
-                break
-            elif file_check.state == "FAILED":
-                raise Exception(f"File processing failed: {file_check.uri}")
-            print(f"Waiting for file processing... Current state: {file_check.state}")
-            time.sleep(1)
+            try:
+                file_check = client.files.get(name=audio_file.name)
+                if file_check.state == "ACTIVE":
+                    break
+                elif file_check.state == "FAILED":
+                    raise Exception(f"File processing failed: {file_check.uri}")
+                print(f"Waiting for file processing... Current state: {file_check.state}")
+            except Exception as e:
+                print(f"Error checking file state (attempt {attempt}): {e}")
+                if attempt > 5: raise e
+                attempt += 1
+            time.sleep(2)
         
         # Buffer time to ensure availability
         time.sleep(2)
@@ -71,13 +77,23 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         Example: {{ "transcript": "...", "feedback": "...", "score": 3 }}
         """
         
-        result = client.models.generate_content(
-            model=MODEL,
-            contents=[audio_file, prompt],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json"
-            )
-        )
+        # Generate with retry
+        max_retries = 3
+        for i in range(max_retries):
+            try:
+                result = client.models.generate_content(
+                    model=MODEL,
+                    contents=[audio_file, prompt],
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json"
+                    )
+                )
+                break
+            except Exception as e:
+                print(f"Generation attempt {i+1} failed: {e}")
+                if i == max_retries - 1: raise e
+                time.sleep(2)
+
         response_text = result.text.strip()
         
         # Clean up JSON markdown if present
