@@ -56,6 +56,9 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
             print(f"Waiting for file processing... Current state: {file_check.state}")
             time.sleep(1)
         
+        # Buffer time to ensure availability
+        time.sleep(2)
+        
         prompt = f"""
         You are a GCSE Chinese teacher (Higher Tier).
         The student is answering the question: "{question_text}"
@@ -70,7 +73,10 @@ def run_ai_feedback_task(answer_id: int, audio_path: str, question_text: str):
         
         result = client.models.generate_content(
             model=MODEL,
-            contents=[audio_file, prompt]
+            contents=[audio_file, prompt],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
         )
         response_text = result.text.strip()
         
