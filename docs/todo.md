@@ -36,7 +36,7 @@
     - [x] Audio Transcoding/Handling
     - [x] Gemini API Integration (Audio -> Text -> Feedback)
     - [x] Saving results to Database
-    - [ ] Async/Background Processing for AI Feedback
+    - [x] Async/Background Processing for AI Feedback
 
 ## Phase 6: Review & Refinement
 - [x] **Review System**
