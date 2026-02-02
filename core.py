@@ -24,6 +24,7 @@ def get_db_url():
 
 db_url = get_db_url()
 db = Database(db_url)
+db.conn.autocommit = True
 
 # --- App Setup ---
 app, rt = fast_app(

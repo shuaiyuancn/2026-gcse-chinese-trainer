@@ -20,3 +20,4 @@ todos.db-wal
 .env.development.local
 .env
 uploads/
+.vscode/
